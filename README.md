@@ -1,3 +1,8 @@
+A little change to the original project！！！
+对原项目在使用中的一点更改！！！
+
+updating.......
+
 ![](https://raw.githubusercontent.com/Tencent/ncnn/master/images/256-ncnn.png)
 # ncnn
 
