@@ -633,6 +633,7 @@ int main(int argc, char** argv)
 
     std::vector<MXNetNode> nodes;
     std::vector<MXNetParam> params;
+    std::vector<int> weightwrited;
 
     read_mxnet_json(jsonpath, nodes);
     read_mxnet_param(parampath, params);
@@ -644,6 +645,12 @@ int main(int argc, char** argv)
     fprintf(pp, "7767517\n");
 
     int node_count = nodes.size();
+
+    weightwrited.resize(node_count);
+    for(int i=0; i<node_count; i++)
+    {
+        weightwrited[i]=0;
+    }
 
     // node reference
     std::map<int, int> node_reference;
@@ -1628,10 +1635,15 @@ int main(int argc, char** argv)
             fprintf(pp, " 1=%d", no_bias == 1 ? 0 : 1);
             fprintf(pp, " 2=%d", (int)weight_data.size());
 
-            int quantize_tag = 0;
-            fwrite(&quantize_tag, sizeof(int), 1, bp);
-            fwrite(weight_data.data(), sizeof(float), weight_data.size(), bp);
-            fwrite(bias_data.data(), sizeof(float), bias_data.size(), bp);
+            if(weightwrited[n.weights[0]] == 0)
+            {
+                int quantize_tag = 0;
+//              fprintf(stderr,"%d:%d\n",weight_data.size(),bias_data.size());
+                fwrite(&quantize_tag, sizeof(int), 1, bp);
+                fwrite(weight_data.data(), sizeof(float), weight_data.size(), bp);
+                fwrite(bias_data.data(), sizeof(float), bias_data.size(), bp);
+                weightwrited[n.weights[0]] = 1;
+            }
         }
         else if (n.op == "InstanceNorm")
         {
