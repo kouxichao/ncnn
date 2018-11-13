@@ -150,6 +150,7 @@ ncnn_add_layer(Reorg)
 ncnn_add_layer(YoloDetectionOutput)
 ncnn_add_layer(Quantize)
 ncnn_add_layer(Dequantize)
+ncnn_add_layer(Yolov3DetectionOutput)
 
 add_library(ncnn STATIC ${ncnn_SRCS})
 
