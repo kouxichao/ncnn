@@ -133,10 +133,17 @@ static bool read_int8scale_table(const char* filepath, std::map<std::string, std
 
     while (!feof(fp))
     {
+        char key[256];
+        int nscan = fscanf(fp, "%255s", key);
+        if (nscan != 1)
+        {
+            break;
+        }
+
         if (in_scale_vector)
         {
             float scale = 1.f;
-            int nscan = fscanf(fp, "%f", &scale);
+            int nscan = sscanf(key, "%f", &scale);
             if (nscan == 1)
             {
                 scales.push_back(scale);
@@ -163,18 +170,22 @@ static bool read_int8scale_table(const char* filepath, std::map<std::string, std
 
         if (!in_scale_vector)
         {
-            char key[256];
-            int nscan = fscanf(fp, "%255s", key);
-            if (nscan == 1)
-            {
-                keystr = key;
+            keystr = key;
 
-                in_scale_vector = true;
-            }
-            else
-            {
-                break;
-            }
+            in_scale_vector = true;
+        }
+    }
+
+    if (in_scale_vector)
+    {
+        // XYZ_param_N pattern
+        if (strstr(keystr.c_str(), "_param_"))
+        {
+            weight_int8scale_table[ keystr ] = scales;
+        }
+        else
+        {
+            blob_int8scale_table[ keystr ] = scales;
         }
     }
 
@@ -1419,6 +1430,14 @@ int main(int argc, char** argv)
             fprintf(pp, " 12=%f", step_height);
             fprintf(pp, " 13=%f", prior_box_param.offset());
         }
+        else if (layer.type() == "PSROIPooling")
+        {
+            const caffe::PSROIPoolingParameter& psroi_pooling_param = layer.psroi_pooling_param();
+            fprintf(pp, " 0=%d", psroi_pooling_param.group_size());
+            fprintf(pp, " 1=%d", psroi_pooling_param.group_size());
+            fprintf(pp, " 2=%f", psroi_pooling_param.spatial_scale());
+            fprintf(pp, " 3=%d", psroi_pooling_param.output_dim());
+        }
         else if (layer.type() == "Python")
         {
             const caffe::PythonParameter& python_param = layer.python_param();
@@ -1484,6 +1503,13 @@ int main(int argc, char** argv)
                 fprintf(pp, " 0=%ld 1=%ld 2=%ld", bs.dim(3), bs.dim(2), bs.dim(1));
             }
             fprintf(pp, " 3=0");// permute
+        }
+        else if (layer.type() == "ROIAlign")
+        {
+            const caffe::ROIAlignParameter& roi_align_param = layer.roi_align_param();
+            fprintf(pp, " 0=%d", roi_align_param.pooled_w());
+            fprintf(pp, " 1=%d", roi_align_param.pooled_h());
+            fprintf(pp, " 2=%f", roi_align_param.spatial_scale());
         }
         else if (layer.type() == "ROIPooling")
         {
