@@ -2,6 +2,7 @@
 
 目前添加层了lstm、二维全连接层、mxnet2ncnn的调整以产生适应于lstm的bin文件。
 
+注：lstm层采用pytorch 版本的lstm权重存储顺序（IFGO）,mxnet框架是不相同的。
 
 <<<<<<< HEAD
 # 持续更新中
