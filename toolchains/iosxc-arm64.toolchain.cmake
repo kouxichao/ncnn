@@ -16,14 +16,13 @@ set(CMAKE_CXX_COMPILER arm-apple-darwin11-clang++)
 
 set(_CMAKE_TOOLCHAIN_PREFIX arm-apple-darwin11-)
 
-set(CMAKE_IOS_SDK_ROOT "/home/nihui/osd/cctools-port/usage_examples/ios_toolchain/target/SDK/")
+set(CMAKE_IOS_SDK_ROOT "/home/nihui/osd/cctools-port/usage_examples/ios_toolchain/target/SDK/iPhoneOS10.2.sdk")
 
 # Set the sysroot default to the most recent SDK
 set(CMAKE_OSX_SYSROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Sysroot used for iOS support")
 
 # set the architecture for iOS
-# set(IOS_ARCH arm64)
-set(IOS_ARCH armv7;arm64)
+set(IOS_ARCH arm64)
 
 set(CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE string "Build architecture for iOS")
 

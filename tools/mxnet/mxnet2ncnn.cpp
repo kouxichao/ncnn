@@ -224,11 +224,11 @@ std::vector<float> MXNetNode::weight(int i, int init_len) const
 
         if (!p.init.empty() && init_len != 0)
         {
-            if (p.init == "[\\$zero\\$, {}]" || p.init == "[\\\"zero\\\", {}]")
+            if (p.init == "[\\$zero\\$, {}]" || p.init == "[\\\"zero\\\", {}]" || p.init == "zeros")
             {
                 data.resize(init_len, 0.f);
             }
-            else if (p.init == "[\\$one\\$, {}]" || p.init == "[\\\"one\\\", {}]")
+            else if (p.init == "[\\$one\\$, {}]" || p.init == "[\\\"one\\\", {}]" || p.init == "ones")
             {
                 data.resize(init_len, 1.f);
             }
@@ -1029,6 +1029,10 @@ int main(int argc, char** argv)
         {
             fprintf(pp, "%-16s", "UnaryOp");
         }
+        else if (n.op == "Crop")
+        {
+            fprintf(pp, "%-16s", "Crop");
+        }
         else if (n.op == "Deconvolution")
         {
             int num_group = n.attr("num_group");
@@ -1042,19 +1046,19 @@ int main(int argc, char** argv)
         {
             fprintf(pp, "%-16s", "Dropout");
         }
-        else if (n.op == "elemwise_add")
+        else if (n.op == "elemwise_add" || n.op == "_add" || n.op == "_plus" || n.op == "_Plus")
         {
             fprintf(pp, "%-16s", "BinaryOp");
         }
-        else if (n.op == "elemwise_div")
+        else if (n.op == "elemwise_div" || n.op == "_div" || n.op == "_Div")
         {
             fprintf(pp, "%-16s", "BinaryOp");
         }
-        else if (n.op == "elemwise_mul")
+        else if (n.op == "elemwise_mul" || n.op == "_mul" || n.op == "_Mul")
         {
             fprintf(pp, "%-16s", "BinaryOp");
         }
-        else if (n.op == "elemwise_sub")
+        else if (n.op == "elemwise_sub" || n.op == "_sub" || n.op == "_minus" || n.op == "_Minus")
         {
             fprintf(pp, "%-16s", "BinaryOp");
         }
@@ -1138,6 +1142,10 @@ int main(int argc, char** argv)
         {
             fprintf(pp, "%-16s", "UnaryOp");
         }
+        else if (n.op == "Pad")
+        {
+            fprintf(pp, "%-16s", "Padding");
+        }
         else if (n.op == "Pooling")
         {
             fprintf(pp, "%-16s", "Pooling");
@@ -1170,15 +1178,23 @@ int main(int argc, char** argv)
         {
             fprintf(pp, "%-16s", "UnaryOp");
         }
+        else if (n.op == "slice")
+        {
+            fprintf(pp, "%-16s", "Crop");
+        }
         else if (n.op == "SliceChannel")
         {
             fprintf(pp, "%-16s", "Slice");
+        }
+        else if (n.op == "SoftmaxActivation")
+        {
+            fprintf(pp, "%-16s", "Softmax");
         }
         else if (n.op == "SoftmaxOutput")
         {
             fprintf(pp, "%-16s", "Softmax");
         }
-        else if (n.op == "SoftmaxActivation")
+        else if (n.op == "softmax")
         {
             fprintf(pp, "%-16s", "Softmax");
         }
@@ -1205,6 +1221,18 @@ int main(int argc, char** argv)
         else if (n.op == "Transpose" || n.op == "transpose")
         {
             fprintf(pp, "%-16s", "Permute");
+        }
+        else if (n.op == "UpSampling")
+        {
+            std::string sample_type = n.attr("sample_type");
+            if (sample_type == "nearest")
+            {
+                fprintf(pp, "%-16s", "Interp");
+            }
+            else if (sample_type == "bilinear")
+            {
+                fprintf(pp, "%-16s", "DeconvolutionDepthWise");
+            }
         }
         else
         {
@@ -1346,7 +1374,8 @@ int main(int argc, char** argv)
             }
             else
             {
-                fprintf(stderr, "Unsupported steps param! %f %f\n", steps[0], steps[1]);
+                fprintf(pp, " 11=%f", steps[1]);
+                fprintf(pp, " 12=%f", steps[0]);
             }
 
             std::vector<float> offsets = n.attr("offsets");
@@ -1677,27 +1706,52 @@ int main(int argc, char** argv)
             int op_type = 10;
             fprintf(pp, " 0=%d", op_type);
         }
+        else if (n.op == "Crop")
+        {
+            int num_args = n.attr("num_args");
+            std::vector<int> offset = n.attr("offset");
+
+            int woffset = 0;
+            int hoffset = 0;
+            if (offset.size() == 2)
+            {
+                woffset = offset[1];
+                hoffset = offset[0];
+            }
+
+            fprintf(pp, " 0=%d", woffset);
+            fprintf(pp, " 1=%d", hoffset);
+            fprintf(pp, " 2=0");
+
+            if (num_args == 1)
+            {
+                std::vector<int> h_w = n.attr("h_w");
+                fprintf(pp, " 3=%d", h_w[1]);
+                fprintf(pp, " 4=%d", h_w[0]);
+                fprintf(pp, " 5=0");
+            }
+        }
         else if (n.op == "Dropout")
         {
 //             float p = n.attr("p");
 //             fprintf(pp, " 0=%d", p);
         }
-        else if (n.op == "elemwise_add")
+        else if (n.op == "elemwise_add" || n.op == "_add" || n.op == "_plus" || n.op == "_Plus")
         {
             int op_type = 0;
             fprintf(pp, " 0=%d", op_type);
         }
-        else if (n.op == "elemwise_div")
+        else if (n.op == "elemwise_div" || n.op == "_div" || n.op == "_Div")
         {
             int op_type = 3;
             fprintf(pp, " 0=%d", op_type);
         }
-        else if (n.op == "elemwise_mul")
+        else if (n.op == "elemwise_mul" || n.op == "_mul" || n.op == "_Mul")
         {
             int op_type = 2;
             fprintf(pp, " 0=%d", op_type);
         }
-        else if (n.op == "elemwise_sub")
+        else if (n.op == "elemwise_sub" || n.op == "_sub" || n.op == "_minus" || n.op == "_Minus")
         {
             int op_type = 1;
             fprintf(pp, " 0=%d", op_type);
@@ -1882,6 +1936,51 @@ int main(int argc, char** argv)
             int op_type = 1;
             fprintf(pp, " 0=%d", op_type);
         }
+        else if (n.op == "Pad")
+        {
+            std::string mode = n.attr("mode");
+            std::vector<int> pad_width = n.attr("pad_width");
+            float constant_value = n.attr("constant_value");
+
+            int type = 0;
+            if (mode == "constant")
+            {
+                type = 0;
+            }
+            else if (mode == "edge")
+            {
+                type = 1;
+            }
+            else if (mode == "reflect")
+            {
+                // FIXME
+            }
+
+            if (pad_width.size() != 8)
+            {
+                fprintf(stderr, "Unsupported pad_width !\n");
+            }
+
+            int channel_before = pad_width[2];
+            int channel_after = pad_width[3];
+            if (channel_before != 0 || channel_after != 0)
+            {
+                // FIXME
+                fprintf(stderr, "Unsupported pad_width on channel axis !\n");
+            }
+
+            int top = pad_width[4];
+            int bottom = pad_width[5];
+            int left = pad_width[6];
+            int right = pad_width[7];
+
+            fprintf(pp, " 0=%d", top);
+            fprintf(pp, " 1=%d", bottom);
+            fprintf(pp, " 2=%d", left);
+            fprintf(pp, " 3=%d", right);
+            fprintf(pp, " 4=%d", type);
+            fprintf(pp, " 5=%f", constant_value);
+        }
         else if (n.op == "Pooling")
         {
             std::string pool_type = n.attr("pool_type");
@@ -1968,6 +2067,55 @@ int main(int argc, char** argv)
             int op_type = 9;
             fprintf(pp, " 0=%d", op_type);
         }
+        else if (n.op == "slice")
+        {
+            std::vector<int> begin = n.attr("begin");
+            std::vector<int> end = n.attr("end");
+            std::vector<int> step = n.attr("step");// TODO
+
+            // assert step == 1
+            for (int i=0; i<(int)step.size(); i++)
+            {
+                if (step[i] != 1)
+                    fprintf(stderr, "Unsupported slice step !\n");
+            }
+
+            int woffset = 0;
+            int hoffset = 0;
+            int coffset = 0;
+            int outw = -233;
+            int outh = -233;
+            int outc = -233;
+
+            if (begin.size() == 2)
+            {
+                woffset = begin[1];
+                outw = end[1] == -1 ? -234 : end[1] - begin[1];
+            }
+            else if (begin.size() == 3)
+            {
+                woffset = begin[2];
+                hoffset = begin[1];
+                outw = end[2] == -1 ? -234 : end[2] - begin[2];
+                outh = end[1] == -1 ? -234 : end[1] - begin[1];
+            }
+            else if (begin.size() == 4)
+            {
+                woffset = begin[3];
+                hoffset = begin[2];
+                coffset = begin[1];
+                outw = end[3] == -1 ? -234 : end[3] - begin[3];
+                outh = end[2] == -1 ? -234 : end[2] - begin[2];
+                outc = end[1] == -1 ? -234 : end[1] - begin[1];
+            }
+
+            fprintf(pp, " 0=%d", woffset);
+            fprintf(pp, " 1=%d", hoffset);
+            fprintf(pp, " 2=%d", coffset);
+            fprintf(pp, " 3=%d", outw);
+            fprintf(pp, " 4=%d", outh);
+            fprintf(pp, " 5=%d", outc);
+        }
         else if (n.op == "SliceChannel")
         {
             int num_outputs = n.attr("num_outputs");
@@ -1979,8 +2127,17 @@ int main(int argc, char** argv)
                 fprintf(pp, ",-233");
             }
         }
+        else if (n.op == "SoftmaxActivation")
+        {
+            fprintf(pp, " 1=1");
+        }
         else if (n.op == "SoftmaxOutput")
         {
+            fprintf(pp, " 1=1");
+        }
+        else if (n.op == "softmax")
+        {
+            fprintf(pp, " 1=1");
         }
         else if (n.op == "sqrt")
         {
@@ -2047,6 +2204,43 @@ int main(int argc, char** argv)
             else
             {
                 fprintf(stderr, "Unsupported transpose type !\n");
+            }
+        }
+        else if (n.op == "UpSampling")
+        {
+            int scale = n.attr("scale");
+            std::string sample_type = n.attr("sample_type");
+
+            if (sample_type == "nearest")
+            {
+                fprintf(pp, " 0=1");
+                fprintf(pp, " 1=%f", (float)scale);
+                fprintf(pp, " 2=%f", (float)scale);
+            }
+            else if (sample_type == "bilinear")
+            {
+                // DeconvolutionDepthWise
+                int num_filter = n.attr("num_filter");
+
+                std::vector<float> weight_data = n.weight(0);
+
+                int kernel = scale * 2 - scale % 2;
+                int stride = scale;
+                int pad = (scale - 1) / 2;
+
+                fprintf(pp, " 0=%d", num_filter);
+                fprintf(pp, " 1=%d", kernel);
+                fprintf(pp, " 2=1");
+                fprintf(pp, " 3=%d", stride);
+                fprintf(pp, " 4=%d", pad);
+                fprintf(pp, " 5=0");
+                fprintf(pp, " 6=%d", (int)weight_data.size());
+                fprintf(pp, " 7=%d", num_filter);
+
+                int quantize_tag = 0;
+                fwrite(&quantize_tag, sizeof(int), 1, bp);
+
+                fwrite(weight_data.data(), sizeof(float), weight_data.size(), bp);
             }
         }
         else

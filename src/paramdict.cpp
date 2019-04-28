@@ -25,6 +25,7 @@ ParamDict::ParamDict()
     use_winograd_convolution = 1;
     use_sgemm_convolution = 1;
     use_int8_inference = 1;
+    use_vulkan_compute = 0;
 
     clear();
 }
@@ -177,6 +178,8 @@ int ParamDict::load_param(FILE* fp)
 #if _MSC_VER
 static inline int mem_sscanf_with_n(int* _internal_nconsumed_ptr, const char*& ptr, const char* format, ...)
 {
+    *_internal_nconsumed_ptr = 0;
+
     va_list args;
     va_start(args, format);
 
