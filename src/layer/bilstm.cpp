@@ -32,6 +32,7 @@ int BiLSTM::load_param(const ParamDict& pd)
     num_output = pd.get(2, 0);
     weight_xc_data_size = pd.get(3, 0);
     weight_hc_data_size = pd.get(4, 0);
+    mxnet_bin = pd.get(5, 0); 
     return 0;
 }
 
@@ -78,7 +79,7 @@ int BiLSTM::load_model(const ModelBin& mb)
     return 0;
 }
 
-int BiLSTM::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_blobs) const
+int BiLSTM::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_blobs, const Option& opt) const
 {
     const Mat& input_blob = bottom_blobs[0];
 //    const Mat& cont_blob = bottom_blobs[1];
@@ -140,6 +141,10 @@ int BiLSTM::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_
                 else 
                     num_layer = d ? 1 : 0;
 
+                const int weight_h_step = weight_hc_data[num_layer].w /4;// 2;
+                const int weight_x_step = weight_xc_data[num_layer].w /4;//>> 2;
+
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q=0; q<num_output; q++)
                 {
                 //   float h_cont = cont ? hidden_data[num_output*l+q] : 0.f;
@@ -147,21 +152,45 @@ int BiLSTM::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_
                     const float* bias_xc_data_ptr = (const float*)bias_xc_data[num_layer];
                     const float* bias_hc_data_ptr = (const float*)bias_hc_data[num_layer];
                     float* gates_data = (float*)gates + 4 * q;
-               
-                    const float* weight_hc_data_I = (const float*)weight_hc_data[num_layer] + num_output * q;
-                    const float* weight_xc_data_I = (const float*)weight_xc_data[num_layer] + size * q;
-                    const float* weight_hc_data_F = (const float*)weight_hc_data[num_layer] + num_output * q + weight_hc_data[num_layer].w/4;
-                    const float* weight_xc_data_F = (const float*)weight_xc_data[num_layer] + size * q + weight_xc_data[num_layer].w /4 ;
-                    const float* weight_hc_data_O = (const float*)weight_hc_data[num_layer] + num_output * q + weight_hc_data[num_layer].w * 3 /4;
-                    const float* weight_xc_data_O = (const float*)weight_xc_data[num_layer] + size * q + weight_xc_data[num_layer].w * 3 / 4 ;
-                    const float* weight_hc_data_G = (const float*)weight_hc_data[num_layer] + num_output * q + weight_hc_data[num_layer].w/2;
-                    const float* weight_xc_data_G = (const float*)weight_xc_data[num_layer] + size * q + weight_xc_data[num_layer].w/2;
+/*               
 
-                    float I = bias_hc_data_ptr[q] + bias_xc_data_ptr[q];
-                    float F = bias_hc_data_ptr[q+num_output*2] + bias_xc_data_ptr[q+num_output];
-                    float O = bias_hc_data_ptr[q+num_output*3] + bias_xc_data_ptr[q+num_output*3];
-                    float G = bias_hc_data_ptr[q+num_output] + bias_xc_data_ptr[q+num_output*2];
+*/
+                    float I,F,O,G;
+                    const float* weight_hc_data_I, *weight_xc_data_I, *weight_hc_data_F, *weight_xc_data_F, *weight_hc_data_O, *weight_xc_data_O, *weight_hc_data_G, *weight_xc_data_G;
 
+                    if(mxnet_bin) //weight data is I,G,F,O
+                    {
+                        weight_hc_data_I = (const float*)weight_hc_data[num_layer] + num_output * q;
+                        weight_xc_data_I = (const float*)weight_xc_data[num_layer] + size * q;
+                        weight_hc_data_F = (const float*)weight_hc_data[num_layer] + num_output * q + (weight_h_step << 1); //weight_hc_data[num_layer].w / 2;
+                        weight_xc_data_F = (const float*)weight_xc_data[num_layer] + size * q + (weight_x_step << 1); //weight_xc_data[num_layer].w / 2 ;
+                        weight_hc_data_O = (const float*)weight_hc_data[num_layer] + num_output * q + weight_h_step * 3; //weight_hc_data[num_layer].w * 3 / 4;
+                        weight_xc_data_O = (const float*)weight_xc_data[num_layer] + size * q + weight_x_step * 3; //weight_xc_data[num_layer].w * 3 / 4;
+                        weight_hc_data_G = (const float*)weight_hc_data[num_layer] + num_output * q + weight_h_step;//weight_hc_data[num_layer].w / 4 ;
+                        weight_xc_data_G = (const float*)weight_xc_data[num_layer] + size * q + weight_x_step;//weight_xc_data[num_layer].w / 4 ;
+
+                        I = bias_hc_data_ptr[q] + bias_xc_data_ptr[q];
+                        F = bias_hc_data_ptr[q+num_output*2] + bias_xc_data_ptr[q+num_output*2];
+                        O = bias_hc_data_ptr[q+num_output*3] + bias_xc_data_ptr[q+num_output*3];
+                        G = bias_hc_data_ptr[q+num_output] + bias_xc_data_ptr[q+num_output];
+                    }
+                    else  //weight data is I,F,G,O
+                    {
+                        weight_hc_data_I = (const float*)weight_hc_data[num_layer] + num_output * q;
+                        weight_xc_data_I = (const float*)weight_xc_data[num_layer] + size * q;
+                        weight_hc_data_F = (const float*)weight_hc_data[num_layer] + num_output * q + weight_h_step; //weight_hc_data[num_layer].w/4;
+                        weight_xc_data_F = (const float*)weight_xc_data[num_layer] + size * q + weight_x_step; //weight_xc_data[num_layer].w /4 ;
+                        weight_hc_data_O = (const float*)weight_hc_data[num_layer] + num_output * q + weight_h_step * 3; //weight_hc_data[num_layer].w * 3 /4;
+                        weight_xc_data_O = (const float*)weight_xc_data[num_layer] + size * q + weight_x_step * 3; //weight_xc_data[num_layer].w * 3 / 4 ;
+                        weight_hc_data_G = (const float*)weight_hc_data[num_layer] + num_output * q + (weight_h_step << 1); //weight_hc_data[num_layer].w/2;
+                        weight_xc_data_G = (const float*)weight_xc_data[num_layer] + size * q + (weight_x_step << 1); //weight_xc_data[num_layer].w/2;
+
+                        I = bias_hc_data_ptr[q] + bias_xc_data_ptr[q];
+                        F = bias_hc_data_ptr[q+num_output] + bias_xc_data_ptr[q+num_output];
+                        O = bias_hc_data_ptr[q+num_output*3] + bias_xc_data_ptr[q+num_output*3];
+                        G = bias_hc_data_ptr[q+num_output*2] + bias_xc_data_ptr[q+num_output*2];
+                    }
+                    
                     for (int i=0; i<num_output; i++)
                     {
                   //      float h_cont = cont ? hidden_data[num_output*l+i] : 0.f;
@@ -203,6 +232,7 @@ int BiLSTM::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_
     
                 float* output_data = top_blob.row(tt);
                 
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q=0; q<num_output; q++)
                 {
                     float* gates_data = (float*)gates + 4 * q;

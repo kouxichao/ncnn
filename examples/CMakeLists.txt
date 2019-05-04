@@ -42,5 +42,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../dlib)
 #add_executable(peleenetssd_seg peleenetssd_seg.cpp)
 #target_link_libraries(peleenetssd_seg ${NCNN_EXAMPLE_LINK_LIBRARIES})
 
+option(EVALUATE "test demo" ON)
+#add_definitions(-DARM_HISI)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../dlib dlib_build)
 add_subdirectory(book_classify)
+add_subdirectory(crnn)
+add_subdirectory(face_recognition)

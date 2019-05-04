@@ -13,6 +13,8 @@
 // specific language governing permissions and limitations under the License.
 
 #include "fullyconnected.h"
+//#include <algorithm>
+//#include "layer_type.h"
 
 namespace ncnn {
 
@@ -38,7 +40,6 @@ int FullyConnected::load_model(const ModelBin& mb)
     weight_data = mb.load(weight_data_size, 0);
     if (weight_data.empty())
         return -100;
-
     if (bias_term)
     {
         bias_data = mb.load(num_output, 1);
@@ -49,7 +50,7 @@ int FullyConnected::load_model(const ModelBin& mb)
     return 0;
 }
 
-int FullyConnected::forward(const Mat& bottom_blob, Mat& top_blob) const
+int FullyConnected::forward(const Mat& bottom_blob, Mat& top_blob, const Option& opt) const
 {
     int w = bottom_blob.w;
     int h = bottom_blob.h;
@@ -77,9 +78,8 @@ int FullyConnected::forward(const Mat& bottom_blob, Mat& top_blob) const
             }
             *(top_blob.row(p)+n_out) = sum;
         }
-        
     }
-
+    
     return 0;
 }
 

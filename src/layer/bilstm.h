@@ -28,12 +28,13 @@ public:
 
     virtual int load_model(const ModelBin& mb);
 
-    virtual int forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_blobs) const;
+    virtual int forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_blobs, const Option& opt) const;
 
 public:
     // param
     int num_lstm_layer;
     int isbilstm;
+    int mxnet_bin;
     int num_output;
     int weight_xc_data_size;
     int weight_hc_data_size;
