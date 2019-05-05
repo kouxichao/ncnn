@@ -5,6 +5,7 @@
 注：pytorch 的lstm权重存储顺序IFGO, mxnet框架是IGFO。可通过下面参数选定。
 
 operation param weight table:
+```
 bilstm: 
 	param id			        param phase	
 
@@ -14,7 +15,7 @@ bilstm:
 	  3                     weight_ih_data_size
 	  4                     weight_hh_data_size     
 	  5						isfrom_mxnet_weight
-
+```
 # 相关项目文件
 
 crnn : 包含crnn_chinese, crnn_eng;
