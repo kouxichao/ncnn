@@ -7,7 +7,7 @@
 operation param weight table:
 ```
 bilstm: 
-	param id			param phase							    default	
+	param id			param phase                            default	
 
 	  0			num_lstm_layers_to_stack(1 or 2)                  0
 	  1			isbilstm(0 for lstm,1 for bilstm)                 0
