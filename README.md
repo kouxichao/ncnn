@@ -7,14 +7,14 @@
 operation param weight table:
 ```
 bilstm: 
-	param id			        param phase	
+	param id			        param phase							      	default	
 
-	  0					num_lstm_layers_to_stack(1 or 2)  
-	  1					isbilstm 
-	  2					num_output
-	  3					weight_ih_data_size
-	  4					weight_hh_data_size     
-	  5					isfrom_mxnet_weight
+	  0					num_lstm_layers_to_stack(1 or 2)						0
+	  1					isbilstm(0 for lstm,1 for bilstm)						0
+	  2					num_output												0
+	  3					weight_ih_data_size										0
+	  4					weight_hh_data_size										0
+	  5					isfrom_mxnet_weight(0 for pytorch,1 for mxnet)			0
 ```
 # 相关项目文件
 
