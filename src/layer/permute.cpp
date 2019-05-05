@@ -45,7 +45,7 @@ int Permute::forward(const Mat& bottom_blob, Mat& top_blob, const Option& opt) c
     size_t elemsize = bottom_blob.elemsize;
 
     int dims = bottom_blob.dims;
-
+/*
     if (dims == 2)
     {
         // order_type
@@ -76,7 +76,7 @@ int Permute::forward(const Mat& bottom_blob, Mat& top_blob, const Option& opt) c
 
         return 0;
     }
-
+*/
     // order_type
     // 0 = w h c
     // 1 = h w c
