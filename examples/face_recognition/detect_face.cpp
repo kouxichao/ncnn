@@ -72,7 +72,7 @@ void getAllImages(const char* path)
 //                    win.add_overlay(dets[j]);
                     dlib::sleep(1000);     
 		        }
-                FILE *fp = fopen("bbox.xy", "a+");
+                FILE *fp = fopen("../../../images/face_recognition/bbox.xy", "a+");
 
                 if(NULL == fp)
                 {

@@ -7,7 +7,7 @@
 
 using namespace dlib;
 
-int convert2rgbfile(char *imagepath, int *weight, int *height)
+static int convert2rgbfile(const char *imagepath, int *weight, int *height)
 {
     dlib::array2d<dlib::rgb_pixel> m;
     load_image(m, imagepath);
@@ -124,9 +124,9 @@ int main(int argc, char* argv[])
 
                 boxes.num = 1;
                 boxes.boxes[0] = box[0];
-                int *w,*h;
+                int w,h;
                 static int picnum=0;
-                int a = convert2rgbfile(rgbfilename.data, w, h);
+                int a = convert2rgbfile(rgbfilename.data(), &w, &h);
                 int isqualified = -1;
                 if(strcmp(pre_name, name) == 0)
                 {
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
                         if(picnum == 5)  
                             rgp.flag = 1; 
 
-                        isqualified = DKFaceRegisterProcess("face.data", *w, *h, boxes, rgp);  //返回值，-1学习失败，0学习中，1学习成功！
+                        isqualified = DKFaceRegisterProcess("face.data", w, h, boxes, rgp);  //返回值，-1学习失败，0学习中，1学习成功！
                     }
                 }
                 else if(isqualified)
