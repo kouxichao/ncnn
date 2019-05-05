@@ -9,12 +9,12 @@ operation param weight table:
 bilstm: 
 	param id			        param phase	
 
-	  0					  num_lstm layers_to_stack(1 or 2)  
-	  1							isbilstm 
-	  2                         num_output
-	  3                     weight_ih_data_size
-	  4                     weight_hh_data_size     
-	  5						isfrom_mxnet_weight
+	  0					num_lstm_layers_to_stack(1 or 2)  
+	  1					isbilstm 
+	  2					num_output
+	  3					weight_ih_data_size
+	  4					weight_hh_data_size     
+	  5					isfrom_mxnet_weight
 ```
 # 相关项目文件
 
