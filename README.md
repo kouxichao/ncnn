@@ -31,4 +31,5 @@ book_classify(目前无用)
 
 # 模型下载
 链接: https://pan.baidu.com/s/1GAg5LPN6-2MdKjIgz0i-ag 提取码: d7nv 
+
 模型放入 ${root_ncnn}/models/crnn/,${root_ncnn}/models/face_recognition/
