@@ -1,6 +1,6 @@
 # 在原项目基础上添加自己的一些更改.
 
-add bilstm lstmcell fullyconnected dimop layers. 
+add bilstm lstmcell fullyconnected dimop layers.
 目前添加层了bilstm、lstmcell、三维全连接层、mxnet2ncnn的调整以产生适应于lstm的bin文件。
 
 for bilstm, the default weight order is IFGO, same as pytorch, but can switch to IGFO(mxnet). 
@@ -24,6 +24,7 @@ crnn : 包含crnn_chinese(由mxnet转换过来的，所以bilstm 的第五个参
 
 face_recognition: 
 ```
+	need sqlite3, compile and install it on your system.
 	需用到sqlite3，提前安装sqlite到系统。
 ```
 
