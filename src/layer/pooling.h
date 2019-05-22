@@ -36,7 +36,7 @@ public:
     virtual int forward(const VkMat& bottom_blob, VkMat& top_blob, VkCompute& cmd, const Option& opt) const;
 #endif // NCNN_VULKAN
 
-    enum { PoolMethod_MAX = 0, PoolMethod_AVE = 1 };
+    enum { PoolMethod_MAX = 0, PoolMethod_AVE = 1, PoolMethod_ADA = 2 };
 
 public:
     // param
@@ -51,6 +51,10 @@ public:
     int pad_bottom;
     int global_pooling;
     int pad_mode;// 0=full 1=valid 2=SAME
+
+    //valid when adaptive pool is selected
+    int output_w; 
+    int output_h; 
 
 #if NCNN_VULKAN
     ncnn::Layer* padding;

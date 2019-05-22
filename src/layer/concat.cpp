@@ -46,7 +46,7 @@ int Concat::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_
 {
     int dims = bottom_blobs[0].dims;
     size_t elemsize = bottom_blobs[0].elemsize;
-
+/*
     if (dims == 1) // axis == 0
     {
         // concat vector
@@ -75,11 +75,10 @@ int Concat::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_
 
             outptr += w;
         }
-
         return 0;
     }
-
-    if (dims == 2 && axis == 0)
+*/
+    if (dims <= 2 && axis == 0)
     {
         // concat image
         int w = bottom_blobs[0].w;
@@ -139,7 +138,11 @@ int Concat::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_
             {
                 const Mat& bottom_blob = bottom_blobs[b];
 
-                const float* ptr = bottom_blob.row(i);
+                const float* ptr;
+                if(bottom_blob.h == 1)
+                    ptr = bottom_blob.row(0);
+                else
+                    ptr = bottom_blob.row(i);
                 memcpy(outptr, ptr, bottom_blob.w * elemsize);
 
                 outptr += bottom_blob.w;

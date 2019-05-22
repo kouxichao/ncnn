@@ -16,6 +16,7 @@
 #include <float.h>
 #include <algorithm>
 #include "layer_type.h"
+#include <cmath>
 
 namespace ncnn {
 
@@ -56,7 +57,9 @@ int Pooling::load_param(const ParamDict& pd)
     pad_bottom = pd.get(15, pad_top);
     global_pooling = pd.get(4, 0);
     pad_mode = pd.get(5, 0);
-
+    
+    output_w = pd.get(6, 0);
+    output_h = pd.get(7, 0);
 #if NCNN_VULKAN
     if (pd.use_vulkan_compute)
     {
@@ -88,6 +91,19 @@ int Pooling::load_param(const ParamDict& pd)
     return 0;
 }
 
+inline int start_index(int a, int b, int c) {
+
+  return (int)std::floor((float)(a * c) / b);
+
+}
+
+
+inline int end_index(int a, int b, int c) {
+
+  return (int)std::ceil((float)((a + 1) * c) / b);
+
+}
+
 int Pooling::forward(const Mat& bottom_blob, Mat& top_blob, const Option& opt) const
 {
     // max value in NxN window
@@ -98,6 +114,47 @@ int Pooling::forward(const Mat& bottom_blob, Mat& top_blob, const Option& opt) c
     int channels = bottom_blob.c;
     size_t elemsize = bottom_blob.elemsize;
 
+    if(pooling_type == PoolMethod_ADA)
+    {
+        if(bottom_blob.dims != 3)
+        {
+            fprintf(stderr, "input shape must 3D\n");
+            return -101;
+        }
+
+        top_blob.create(output_w, output_h, channels, elemsize, opt.blob_allocator);
+        for(size_t d = 0; d < channels; d++)
+        {
+            for(size_t i = 0; i < output_h; i++)
+            {
+                int istartH = start_index(i, output_h, h);
+                int iendH   = end_index(i, output_h, h);
+                int KH = iendH - istartH;           
+
+                for(size_t j = 0; j < output_w; j++)
+                {
+                    int istartW = start_index(j, output_w, w);
+                    int iendW = end_index(j, output_w, w);
+                    int KW = iendW - istartW;
+
+                    const float *in_data = (float*)bottom_blob.data + d * bottom_blob.cstep + istartH * w + istartW;
+                    float *out_data = (float*)top_blob.data + d * output_w * output_h + i * output_w + j;
+
+                    float sum = 0;
+                    for(size_t ih = 0; ih < KH; ih++)
+                    {
+                        for(size_t iw = 0; iw < KW; iw++)
+                        {
+                            sum += *(in_data + ih * w + iw);
+                        }
+                    }
+                    *out_data = sum / KW / KH;
+                }
+            }
+        }
+
+        return 0;
+    }
 //     fprintf(stderr, "Pooling     input %d x %d  pad = %d %d %d %d  ksize=%d %d  stride=%d %d\n", w, h, pad_left, pad_right, pad_top, pad_bottom, kernel_w, kernel_h, stride_w, stride_h);
     if (global_pooling)
     {

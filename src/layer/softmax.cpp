@@ -16,6 +16,7 @@
 #include <float.h>
 #include <math.h>
 #include <algorithm>
+#include <cmath>
 
 namespace ncnn {
 
@@ -43,6 +44,7 @@ Softmax::Softmax()
 int Softmax::load_param(const ParamDict& pd)
 {
     axis = pd.get(0, 0);
+    logSoftMax = pd.get(1, 0);
 
     // the original softmax handle axis on 3-dim blob incorrectly
     // ask user to regenerate param instead of producing wrong result
@@ -64,7 +66,7 @@ int Softmax::forward_inplace(Mat& bottom_top_blob, const Option& opt) const
 
     int dims = bottom_top_blob.dims;
     size_t elemsize = bottom_top_blob.elemsize;
-
+/*
     if (dims == 1) // axis == 0
     {
         int w = bottom_top_blob.w;
@@ -92,13 +94,15 @@ int Softmax::forward_inplace(Mat& bottom_top_blob, const Option& opt) const
         return 0;
     }
 
-    if (dims == 2 && axis == 0)
+    if (dims ==  && axis == 0)
+*/
+    if (dims <= 2 && axis == 0)
     {
         int w = bottom_top_blob.w;
         int h = bottom_top_blob.h;
 
         Mat max;
-        max.create(w, elemsize, opt.workspace_allocator);
+        max.create(h, elemsize, opt.workspace_allocator);
         if (max.empty())
             return -100;
         max.fill(-FLT_MAX);
@@ -108,12 +112,12 @@ int Softmax::forward_inplace(Mat& bottom_top_blob, const Option& opt) const
             const float* ptr = bottom_top_blob.row(i);
             for (int j=0; j<w; j++)
             {
-                max[j] = std::max(max[j], ptr[j]);
+                max[i] = std::max(max[i], ptr[j]);
             }
         }
 
         Mat sum;
-        sum.create(w, elemsize, opt.workspace_allocator);
+        sum.create(h, elemsize, opt.workspace_allocator);
         if (sum.empty())
             return -100;
         sum.fill(0.f);
@@ -123,8 +127,20 @@ int Softmax::forward_inplace(Mat& bottom_top_blob, const Option& opt) const
             float* ptr = bottom_top_blob.row(i);
             for (int j=0; j<w; j++)
             {
-                ptr[j] = exp(ptr[j] - max[j]);
-                sum[j] += ptr[j];
+                if(logSoftMax)
+                {
+                    sum[i] += exp(ptr[j] - max[i]);
+                }
+                else
+                {
+                    ptr[j] = exp(ptr[j] - max[i]);
+                    sum[i] += ptr[j];  
+                }
+            }
+
+            if(logSoftMax)
+            {
+                sum[i] = log(sum[i]);
             }
         }
 
@@ -133,7 +149,10 @@ int Softmax::forward_inplace(Mat& bottom_top_blob, const Option& opt) const
             float* ptr = bottom_top_blob.row(i);
             for (int j=0; j<w; j++)
             {
-                ptr[j] /= sum[j];
+                if(logSoftMax)
+                    ptr[j] = ptr[j] - max[i] - sum[i];
+                else
+                    ptr[j] /= sum[i];
             }
         }
 

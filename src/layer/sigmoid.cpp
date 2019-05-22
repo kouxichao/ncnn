@@ -38,14 +38,25 @@ int Sigmoid::forward_inplace(Mat& bottom_top_blob, const Option& opt) const
     int channels = bottom_top_blob.c;
     int size = w * h;
 
+    
+    float max=0.f;
+
+    for (int i=0; i<h; i++)
+    {
+        const float* ptr = bottom_top_blob.row(i);
+        for (int j=0; j<w; j++)
+        {
+            max = std::max(max, -ptr[j]);
+        }
+    }
+
     #pragma omp parallel for num_threads(opt.num_threads)
     for (int q=0; q<channels; q++)
     {
         float* ptr = bottom_top_blob.channel(q);
-
         for (int i=0; i<size; i++)
         {
-            ptr[i] = 1.f / (1.f + exp(-ptr[i]));
+            ptr[i] = 1. / (1. + exp(-ptr[i]));
         }
     }
 

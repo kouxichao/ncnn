@@ -37,7 +37,7 @@ int Embed::load_param(const ParamDict& pd)
 
 int Embed::load_model(const ModelBin& mb)
 {
-    weight_data = mb.load(weight_data_size, 0);
+    weight_data = mb.load(weight_data_size, 1);
     if (weight_data.empty())
         return -100;
 
@@ -66,7 +66,6 @@ int Embed::forward(const Mat& bottom_blob, Mat& top_blob, const Option& opt) con
         float* outptr = top_blob.row(q);
 
         int word_index = ((const int*)bottom_blob)[q];
-
         if (word_index < 0)
             word_index = 0;
         if (word_index >= input_dim)

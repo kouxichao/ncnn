@@ -54,32 +54,41 @@ int FullyConnected::forward(const Mat& bottom_blob, Mat& top_blob, const Option&
 {
     int w = bottom_blob.w;
     int h = bottom_blob.h;
+    int channels = bottom_blob.c;
 
-    top_blob.create(num_output, h);
+    if(h == 1 && channels==1)
+        top_blob.create(num_output);
+    else if(channels == 1)
+        top_blob.create(num_output, h);
+    else 
+        top_blob.create(num_output, h, channels);
+
     if (top_blob.empty())
         return -100;
 
     // num_output
     #pragma omp parallel for
-    for (int p=0; p<h; p++)
+    for(int d = 0; d < channels; d++)
     {
-        float sum = 0.f;
-
-        for (int n_out=0; n_out<num_output; n_out++)
+        float* outptr = top_blob.channel(d); 
+        const float* inptr = bottom_blob.channel(d);
+        for (int p=0; p<h; p++)
         {
-            if (bias_term)
-            sum = bias_data[n_out];
+            float sum = 0.f;
 
-            for (int q=0; q<w; q++)
+            for (int n_out=0; n_out<num_output; n_out++)
             {
-                const float* w = (const float*)weight_data + q + n_out * bottom_blob.w;
-                const float* m = bottom_blob.row(p) + q;
-                sum += (*m) * (*w);
+                if (bias_term)
+                sum = bias_data[n_out];
+
+                for (int q=0; q<w; q++)
+                {
+                    sum += inptr[p * w + q] * weight_data[q + n_out * w];
+                }
+                outptr[p * num_output +n_out] = sum;
             }
-            *(top_blob.row(p)+n_out) = sum;
         }
-    }
-    
+    }    
     return 0;
 }
 

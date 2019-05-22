@@ -37,6 +37,7 @@ public:
 
 public:
     int axis;
+    int logSoftMax;
 
 #if NCNN_VULKAN
     Pipeline* pipeline_softmax_reduce_max;
