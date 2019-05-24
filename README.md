@@ -1,4 +1,4 @@
-# 在原项目基础上添加自己的一些更改.
+# WORKS ON NCNN INCULDE CRNN(CHINESE, ENGLISH), IMAGE CAPTION, FACE RECOGNITION.
 Layers:
 ```
 	bilstm
