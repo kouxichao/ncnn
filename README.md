@@ -33,9 +33,10 @@ lstmcell(3 input blobs, two output blobs):
 	
 	  0                     input_size                                        0                    
 	  1                     hidden_size                                       0
-	example(输入dims=2560，shape=(num_samples, 2560);输出dims=512, shape=(num_samples, 512)): 
-	LSTMCell         lstm   3 2 lstm_input decoder_h decoder_c lstm_out_h lstm_out_c 0=2560 1=512
-
+	
+param examples:
+lstmcell(输入dims=2560，shape=(num_samples, 2560);输出dims=512, shape=(num_samples, 512)): 
+LSTMCell         lstm   3 2 lstm_input decoder_h decoder_c lstm_out_h lstm_out_c 0=2560 1=512
 ```
 
 # works 相关项目文件
