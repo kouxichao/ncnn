@@ -58,7 +58,9 @@ face_recognition:
 
 image_caption(with attention):
 ```
-	trained with pytorch.
+	trained with pytorch(two implementations for reference).
+	(1)use nnie for encoder and ncnn for decoder
+	(2)use ncnn for whole model
 ```
 book_classify:
 ```
