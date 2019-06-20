@@ -8,8 +8,8 @@ ncnn::Net netCrnn;
 void DKBoxTextRecognizationInit()
 {
 #ifdef ARM_HISI
-    netCrnn.load_param("english_crnn.param");
-    netCrnn.load_model("english_crnn.bin");
+    netCrnn.load_param("crnn.param");
+    netCrnn.load_model("crnn.bin");
 #else 
     netCrnn.load_param("../../../models/crnn/crnn.param");
     netCrnn.load_model("../../../models/crnn/crnn.bin");	

@@ -12,11 +12,13 @@ endif()
 message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
 cmake_minimum_required(VERSION 3.0)
+#set(CMAKE_BUILD_TYPE "Debug")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -Wall -g -ggdb")
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE release CACHE STRING "Choose the type of build" FORCE)
 endif()
-
+    
 project(ncnn)
 
 option(NCNN_OPENMP "openmp support" ON)

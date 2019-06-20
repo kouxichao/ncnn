@@ -223,6 +223,9 @@ ncnn_add_layer(FullyConnected)
 ncnn_add_layer(Packing)
 ncnn_add_layer(Requantize)
 ncnn_add_layer(Cast)
+#ncnn_add_layer(Decoder)
+ncnn_add_layer(DimOp)
+ncnn_add_layer(LSTMCell)
 
 add_custom_target(generate-spirv DEPENDS ${SHADER_SPV_HEX_FILES})
 

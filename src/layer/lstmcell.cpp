@@ -88,6 +88,8 @@ int LSTMCell::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& to
      * c_t := f_t .* c_{t-1} + i_t .* g_t
      * h_t := o_t .* tanh[c_t]
      */
+   // fprintf(stderr, "num_threads:%d\n", opt.num_threads);
+    #pragma omp parallel for num_threads(4)
     for (int out_ele=0; out_ele<hidden_size; out_ele++)
     {
         const float* weight_ih_data_I = ih_I + input_size * out_ele;
@@ -103,7 +105,7 @@ int LSTMCell::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& to
         if(input_blob.h != hidden_blob.h && hidden_blob.h != 1)
         {
             fprintf(stderr, "shape don't match !\n");
-            return -101;
+            //return -101;
         }
 
         for(size_t i = 0; i < input_blob.h; i++)        

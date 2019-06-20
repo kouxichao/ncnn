@@ -1,0 +1,47 @@
+/*
+    #if JPG_IMAGE
+    char *imagePath = argv[1]; 
+    dlib::array2d<dlib::rgb_pixel> sourceImage;
+    load_image(sourceImage, imagePath);
+    FILE *fp_image = fopen(RGB_PATH, "wb");   
+    if(NULL == fp_image)
+    {
+        fprintf(stderr, "imgdata read error!");
+        exit(1);
+    } 
+
+    #if RGB_PLANAR //rgb_format
+    int imageArea = sourceImage.nc()*sourceImage.nr();
+    unsigned char* rgb_panel = new unsigned char[imageArea*3];
+    unsigned char* rgb_panel_r = rgb_panel;
+    unsigned char* rgb_panel_g = rgb_panel + imageArea;
+    unsigned char* rgb_panel_b = rgb_panel + imageArea*2;    
+
+    for(int r = 0; r < sourceImage.nr(); r++)
+    {
+	    for(int c = 0; c < sourceImage.nc(); c++)
+	    {
+	        rgb_panel_r[r*sourceImage.nc()+c] = sourceImage[r][c].red;
+	        rgb_panel_g[r*sourceImage.nc()+c] = sourceImage[r][c].green;
+	        rgb_panel_b[r*sourceImage.nc()+c] = sourceImage[r][c].blue;
+	    }
+    }
+    fwrite(rgb_panel, 1, sourceImage.nc()*sourceImage.nr()*3, fp_image);
+    #else    
+    fwrite(&sourceImage[0][0], 1, sourceImage.nc()*sourceImage.nr()*3, fp_image);
+    #endif   //rgb_format
+    fclose(fp_image);
+    #endif //JPG_IMAGE
+*/
+    /*read RGB_PLANAR data*/
+    /*
+    FILE *fp_RGBPlanar = fopen(RGB_PATH, "rb");   
+    if(NULL == fp_RGBPlanar)
+    {
+        fprintf(stderr, "open %s failed!\n", RGB_PATH);
+    }
+    int imageBSize = IMAGE_SIZE * IMAGE_SIZE * 3;
+    char* rgbPlanar = (char*)malloc(imageBSize);
+    fread(rgbPlanar, imageBSize, 1, fp_RGBPlanar);
+    fclose(fp_RGBPlanar);
+    */

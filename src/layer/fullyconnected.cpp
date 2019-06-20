@@ -67,7 +67,7 @@ int FullyConnected::forward(const Mat& bottom_blob, Mat& top_blob, const Option&
         return -100;
 
     // num_output
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(opt.num_threads)
     for(int d = 0; d < channels; d++)
     {
         float* outptr = top_blob.channel(d); 
@@ -88,7 +88,8 @@ int FullyConnected::forward(const Mat& bottom_blob, Mat& top_blob, const Option&
                 outptr[p * num_output +n_out] = sum;
             }
         }
-    }    
+    } 
+
     return 0;
 }
 

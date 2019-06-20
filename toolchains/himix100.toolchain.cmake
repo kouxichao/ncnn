@@ -12,7 +12,7 @@ SET ( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
 SET ( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
 
 # set ${CMAKE_C_FLAGS} and ${CMAKE_CXX_FLAGS}flag for cross-compiled process
-SET ( CMAKE_CXX_FLAGS "-std=c++11 -march=armv8-a -fopenmp ${CMAKE_CXX_FLAGS}" )
+SET ( CMAKE_CXX_FLAGS "-std=c++11 -march=armv8-a -fopenmp ${CMAKE_CXX_FLAGS}" ) #-mcpu=cortex-a53+simd -mcpu=cortex-a53+fp 
 
 # other settings
 add_definitions(-D__ARM_NEON)
