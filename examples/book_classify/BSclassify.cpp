@@ -59,11 +59,11 @@ int DKSceneClassification(char* rgbfilename, int iWidth, int iHeight)
 //    const float mean_vals[3] = {104.f, 117.f, 123.f};//103.94,116.78,123.68
 //    in.substract_mean_normalize(mean_vals, 0);
     ncnn::Extractor ex = mobilefacenet.create_extractor();
-    ex.set_light_mode(true);
+    ex.set_light_mode(false);
 
     ex.input("data", in);
     ex.extract("fc7_book", fc);
-//    printf("fc:%d,%d,%d\n%f_%f\n", fc.c, fc.h, fc.w, *(fc.row(0)), *(fc.row(0)+1));
+    printf("fc:%d,%d,%d\n%f_%f\n", fc.c, fc.h, fc.w, *(fc.row(0)), *(fc.row(0)+1));
     
     float *dp = fc.row(0);
     return *(dp+1) > *dp ? 1 : 0;

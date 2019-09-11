@@ -7,6 +7,10 @@
 #include "dlib/image_processing/frontal_face_detector.h"
 #include "dlib/image_processing.h"
 #include "face_recognization.h"
+#include "hnsw/hnswlib.h"
+
+using namespace std;
+using namespace hnswlib;
 
 #ifdef JPG_DEMO
 //测试使用
@@ -16,6 +20,8 @@ static int id= 0;
 static  sqlite3* facefeatures;  //人脸特征数据库
 static  ncnn::Mat fc[10];       //人脸特征的存储数组
 static int picIndex;             //合格人脸图片索引
+static hnswlib::HierarchicalNSW<float> *appr_alg;
+
 //static int numquapic      合格图片的数量
 
 //工具函数
@@ -30,10 +36,61 @@ int dot_int(const int* fc1, const int* fc2)
                       
 }
 */
+
+int knn(float x[], int k, float threshold) {
+
+    cout << "total number of train vector: " << appr_alg->cur_element_count << endl;
+    priority_queue<std::pair<float, hnswlib::labeltype>> re =
+        appr_alg->searchKnn((void *)x, k);
+
+    cout << "size is " << re.size() << "\n";
+
+    std::vector< std::pair<int, int> > vote;
+    vote.push_back(std::make_pair(re.top().second, 1));
+    re.pop();
+    for(int i=1; i<k; i++)
+    {
+        if(i == k-1 && re.top().first > threshold)
+            return 0;
+            
+        int j=0;
+        for(; j<vote.size(); j++)
+        {
+            if(vote[j].first == re.top().second)
+            {
+                vote[j].second += 1;
+                break;
+            }
+        }
+        if(j == vote.size())
+        {
+            vote.push_back(std::make_pair(re.top().second, 1));
+        }
+
+        re.pop();
+    }
+
+    float max = 0;
+    // printf("(ID:%d)__ballot:%d\n", vote[0].first, vote[0].second);
+    for(int j=1; j<vote.size(); j++)
+    {
+        if(vote[j].second > vote[0].second)
+        {
+            max = j;
+        }
+        // printf("(ID:%d)__ballot:%d\n", vote[j].first, vote[j].second);
+    } 
+#if DEBUG  
+    printf("results:\n(ID:%d)__ballot:%d\n", vote[max].first, vote[max].second);
+#endif
+    return vote[max].first;
+
+}
+
 float dot(float* fc1, float* fc2)
 {
     float sum = 0;
-    for(int i=0; i<128; i++)
+    for(int i=0; i<FEATURE_DIM; i++)
     {
         sum += (*(fc1+i)) * (*(fc2+i));
     }
@@ -43,70 +100,14 @@ float dot(float* fc1, float* fc2)
 int normalize(float* fc1)
 {
     float sq = sqrt(dot(fc1, fc1));
-    for(int i=0; i<128; i++)
+    for(int i=0; i<FEATURE_DIM; i++)
     {
         *(fc1+i) = (*(fc1+i))/sq;
     }
     return 0;
 }
 
-int knn(std::vector< std::pair<int, float> >& re, int k, float threshold)
-{
-    std::pair<int, float> temp;
-    for(int i=0; i<re.size(); i++)
-    {
-	    for(int j=i+1; j<re.size(); j++)
-	    {
-            if(re[j].second > re[i].second)
-            {
-            	temp = re[i];
-                re[i] = re[j];
-                re[j] = temp;
-            }
-        }
-    }
-   
-    if(re[0].second > threshold)
-    { 
-        std::vector< std::pair<int, int> > vote;
-        vote.push_back(std::make_pair(re[0].first, 1));
-        for(int i=1; i<k; i++)
-        {
-            int j=0;
-	        for(; j<vote.size(); j++)
-            {
-                if(vote[j].first == re[i].first)
-                {
-                    vote[j].second += 1;
-                    break;
-                }
-            }
-            if(j == vote.size())
-            {
-                vote.push_back(std::make_pair(re[i].first, 1));
-            } 
-        }
-    
-        float max = 0;
-        // printf("(ID:%d)__ballot:%d\n", vote[0].first, vote[0].second);
-        for(int j=1; j<vote.size(); j++)
-        {
-            if(vote[j].second > vote[0].second)
-            {
-                max = j;
-            }
-            // printf("(ID:%d)__ballot:%d\n", vote[j].first, vote[j].second);
-        } 
-#if DEBUG  
-        printf("results:\n(ID:%d)__ballot:%d\n", vote[max].first, vote[max].second);
-#endif
-        return vote[max].first;
-    }
-    else
-    {
-   	    return 0; 
-    }
-}
+
 
 void DKFaceRegisterInit()
 {
@@ -310,16 +311,16 @@ void DKFaceRegisterEnd(const char* voiceFile)
         }
 #endif
        
-        float fe[1280] = {0.f};
+        float fe[FEATURE_DIM * 10] = {0.f};
         int fcindex = picIndex >= 10 ? 10:picIndex;
 #ifdef DEBUG
         fprintf(stderr, "num_features:%d\n", fcindex);
 #endif
         for(int i=0; i<fcindex; i++)
         {
-            for(int j=0; j<128; j++)
+            for(int j=0; j<FEATURE_DIM; j++)
             { 
-                fe[i*128 + j] = *((float*)fc[i].data + j);
+                fe[i*FEATURE_DIM + j] = *((float*)fc[i].data + j);
             }
         }
 
@@ -462,6 +463,12 @@ void DKFaceRecognizationInit()
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(facefeatures));
         exit(-1);
     }
+
+    hnswlib::SpaceInterface<float> *InnerProductSpace;
+    InnerProductSpace = new hnswlib::InnerProductSpace(FEATURE_DIM);
+    appr_alg = new hnswlib::HierarchicalNSW<float>(InnerProductSpace, 1000, 16, 200);
+    appr_alg->setEf(50);
+
 #ifdef DEBUG
     else
     {
@@ -644,12 +651,12 @@ int DKFaceRecognizationProcess(char *recvoicefile, const char* rgbfilename, int 
     	sqlite3_finalize(stat);   
         fprintf(stderr, "num_features:%d\n", numfea);
 #endif 
-        float buf[128] = {0.f};
+        float buf[FEATURE_DIM] = {0.f};
         int offset = 0;
         while (offset < blob_length)
         {
             int size = blob_length - offset;
-            if (size > 128*4) size = 128*4;
+            if (size > FEATURE_DIM*4) size = FEATURE_DIM*4;
             rc = sqlite3_blob_read(blob, buf, size, offset);
             if (rc != SQLITE_OK)
             {
@@ -659,20 +666,24 @@ int DKFaceRecognizationProcess(char *recvoicefile, const char* rgbfilename, int 
         
             offset += size;
 //	    clock_t start = clock();
-            similarity = dot((float*)fc.data, buf);
+//           similarity = dot((float*)fc.data, buf);
 //	    clock_t finsh = clock();
 //     	    fprintf(stderr,"dot cost %d ms\n", (finsh - start));
 #if DEBUG   
             fprintf(stderr, "%d_similarity:%f\n",i, similarity);
 #endif
-            results.push_back(std::make_pair(i+1, similarity));
+            appr_alg->addPoint((void *)(buf), i+1);
+
+//            results.push_back(std::make_pair(, similarity));
         }
         sqlite3_blob_close(blob);
     }
     
 
     int ID;
-    ID = knn(results, param.k, param.threshold);
+   // ID = knn(results, param.k, param.threshold);
+    ID = knn(fc.data, param.k, param.threshold);
+
     if(!ID)
     {
         strcpy(recvoicefile, "unknown");

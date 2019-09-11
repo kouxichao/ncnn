@@ -6,6 +6,10 @@
 #define DKMAXBOXNUM 30 // 最多可检测对象数目
 #endif
 
+#ifndef FEATURE_DIM
+#define FEATURE_DIM 128
+#endif
+
 #ifndef DKMINFACEREGISTERIMGNUM
 #define DKMINFACEREGISTERIMGNUM  5 // 人脸注册时最少需采集人脸数目
 #endif

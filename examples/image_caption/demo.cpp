@@ -31,9 +31,9 @@ int save_image_bin(const char* imagepath)
     {
 	    for(int c = 0; c < IMAGE_SIZE; c++)
 	    {
-	        rgb_panel_r[r*IMAGE_SIZE+c] = input_image[r][c].red;
+	        rgb_panel_r[r*IMAGE_SIZE+c] = input_image[r][c].blue;//input_image[r][c].red;
 	        rgb_panel_g[r*IMAGE_SIZE+c] = input_image[r][c].green;
-	        rgb_panel_b[r*IMAGE_SIZE+c] = input_image[r][c].blue;
+	        rgb_panel_b[r*IMAGE_SIZE+c] = input_image[r][c].red;//input_image[r][c].blue;
             if(r == 0 && c < 100)
             printf("%d_%d\t", rgb_panel_r[r*IMAGE_SIZE+c], m[r][c].red);
 	    }
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     SAMPLE_SVP_NNIE_ImaCap_init();
 
     clock_t start = clock();
-    for(size_t i = 0; i < 30; i++)
+    for(size_t i = 0; i < 3; i++)
     {
         const char* image_path = RGB_PATH;
         char* caption = (char *)calloc(CAPTION_MAX_SIZE, 1);
